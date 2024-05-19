@@ -1,40 +1,25 @@
 import express, { Request, Response } from "express";
-import AWS from "aws-sdk";
-import "dotenv/config"
+import "dotenv/config";
+import cors from "cors";
+import { dynamodb } from "./db";
+import router from "./routes";
 
 const app = express();
+app.use(express.json());
+app.use(cors());
 
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
+app.use("/api/v1", router);
 
 const PORT = process.env.PORT || 8001;
-const dynamodb = new AWS.DynamoDB();
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
-});
-app.get("/api/data", (req: Request, res: Response) => {
-  const params: AWS.DynamoDB.DocumentClient.ScanInput = {
-    TableName: "IOA_table",
-  };
-  console.log("params: ", params);
-  
-  dynamodb.scan(params, (err, data) => {
-    if (err) {
-      console.error("Error fetching data from DynamoDB", err);
-      res.status(500).json({ error: "Error fetching data" });
-    } else {
-      res.json(data.Items);
-    }
-  });
+  res.json({ msg: "Hello world!" });
 });
 
-app.post("/api/data", (req: Request, res: Response) => {
-  // Implement your post route logic here
-});
+interface MyDataItem {
+  id: string;
+  name: string;
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
