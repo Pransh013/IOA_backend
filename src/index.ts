@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import "dotenv/config";
 import cors from "cors";
-import { dynamodb } from "./db";
 import router from "./routes";
 
 const app = express();
@@ -15,11 +14,6 @@ const PORT = process.env.PORT || 8001;
 app.get("/", (req: Request, res: Response) => {
   res.json({ msg: "Hello world!" });
 });
-
-interface MyDataItem {
-  id: string;
-  name: string;
-}
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
