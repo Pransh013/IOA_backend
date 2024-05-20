@@ -35,7 +35,9 @@ const userSigninController = async (req: Request, res: Response) => {
 
       const token = jwt.sign({ userId: user.userId }, jwtSecretKey);
 
-      return res.status(200).json({ message: "Login successful", token });
+      return res
+        .status(200)
+        .json({ message: "Login successful", token, fullName: user.fullName });
     } else {
       return res.status(401).json({ error: "Invalid email" });
     }
