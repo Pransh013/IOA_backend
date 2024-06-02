@@ -7,3 +7,5 @@ AWS.config.update({
 });
 
 export const dynamodb = new AWS.DynamoDB.DocumentClient();
+
+export const cognito = new AWS.CognitoIdentityServiceProvider();
