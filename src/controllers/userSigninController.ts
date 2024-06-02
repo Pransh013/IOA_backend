@@ -1,10 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { dynamodb } from "../db";
+import { cognito } from "../db";
 
-const jwtSecretKey = process.env.JWT_SECRET_KEY || "myjwtsecret";
+const clientId = process.env.COGNITO_CLIENT_ID || "my-app-client-id";
 
 const userSigninController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -13,37 +10,45 @@ const userSigninController = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Email and password are required" });
   }
 
+  const params = {
+    AuthFlow: "USER_PASSWORD_AUTH",
+    ClientId: clientId,
+    AuthParameters: {
+      USERNAME: email,
+      PASSWORD: password,
+    },
+  };
+
   try {
-    const params = {
-      TableName: "ioa_users",
-      IndexName: "email-index",
-      KeyConditionExpression: "email = :email",
-      ExpressionAttributeValues: {
-        ":email": email,
-      },
+    const data = await cognito.initiateAuth(params).promise();
+
+    const accessToken = data.AuthenticationResult?.AccessToken;
+
+    const getUserParams = {
+      AccessToken: accessToken || "",
     };
 
-    const result = await dynamodb.query(params).promise();
+    const userData = await cognito.getUser(getUserParams).promise();
 
-    if (result.Items && result.Items.length > 0) {
-      const user = result.Items[0];
+    const fullName =
+      userData.UserAttributes?.find((attr) => attr.Name === "name")?.Value ||
+      "";
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ error: "Invalid password" });
-      }
-
-      const token = jwt.sign({ userId: user.userId }, jwtSecretKey);
-
-      return res
-        .status(200)
-        .json({ message: "Login successful", token, fullName: user.fullName });
-    } else {
-      return res.status(401).json({ error: "Invalid email" });
-    }
-  } catch (error) {
+    return res.status(200).json({
+      message: "Login successful",
+      token: data.AuthenticationResult?.IdToken,
+      fullName: fullName,
+    });
+  } catch (error: any) {
     console.error("Error logging in user:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error.code === "UserNotConfirmedException") {
+      return res.status(401).json({
+        error:
+          "User is not confirmed. Please check your email for the confirmation code.",
+      });
+    } else {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
   }
 };
 
