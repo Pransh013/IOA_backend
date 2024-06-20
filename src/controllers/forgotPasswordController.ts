@@ -1,4 +1,3 @@
-import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { Request, Response } from "express";
 import { cognito } from "../db";
 

@@ -3,6 +3,7 @@ import { cognito, dynamodb } from "../db";
 
 const clientId = process.env.COGNITO_CLIENT_ID || "my-app-client-id";
 const userPoolId = process.env.COGNITO_USER_POOL_ID || "my-user-pool-id";
+const dynamoDBTable = process.env.DYNAMODB_TABLE_NAME || "my-db-table";
 
 const verifyEmailController = async (req: Request, res: Response) => {
   const { email, confirmationCode } = req.body;
@@ -27,7 +28,7 @@ const verifyEmailController = async (req: Request, res: Response) => {
     };
 
     const userResult = await cognito.adminGetUser(adminGetUserParams).promise();
-    const userId = userResult.UserAttributes?.find(
+    const userId = userResult?.UserAttributes?.find(
       (attr) => attr.Name === "sub"
     )?.Value;
     const fullName = userResult.UserAttributes?.find(
@@ -35,7 +36,7 @@ const verifyEmailController = async (req: Request, res: Response) => {
     )?.Value;
 
     const params = {
-      TableName: "ioa_users",
+      TableName: dynamoDBTable,
       Item: {
         userId,
         email,

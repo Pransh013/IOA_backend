@@ -1,4 +1,11 @@
 import AWS from "aws-sdk";
+import dotenv from "dotenv";
+
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+dotenv.config({ path: envFile });
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -7,5 +14,4 @@ AWS.config.update({
 });
 
 export const dynamodb = new AWS.DynamoDB.DocumentClient();
-
 export const cognito = new AWS.CognitoIdentityServiceProvider();

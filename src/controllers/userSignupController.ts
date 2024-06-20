@@ -1,8 +1,6 @@
-import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { cognito, dynamodb } from "../db";
+import { cognito } from "../db";
 
-const jwtSecretKey = process.env.JWT_SECRET_KEY || "my-jwt-secret";
 const clientId = process.env.COGNITO_CLIENT_ID || "my-app-client-id";
 
 const userSignupController = async (req: Request, res: Response) => {
@@ -27,7 +25,6 @@ const userSignupController = async (req: Request, res: Response) => {
 
     await cognito.signUp(signUpParams).promise();
     return res.status(201).json({ message: "User signed up successfully" });
-
   } catch (error: any) {
     console.error("Error signing up user: ", error);
     if (error.code === "UsernameExistsException") {

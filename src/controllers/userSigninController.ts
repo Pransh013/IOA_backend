@@ -21,7 +21,6 @@ const userSigninController = async (req: Request, res: Response) => {
 
   try {
     const data = await cognito.initiateAuth(params).promise();
-
     const accessToken = data.AuthenticationResult?.AccessToken;
 
     const getUserParams = {
