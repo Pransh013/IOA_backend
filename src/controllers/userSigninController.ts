@@ -19,16 +19,35 @@ const userSigninController = async (req: Request, res: Response) => {
     },
   };
 
+  let accessToken;
+
   try {
     const data = await cognito.initiateAuth(params).promise();
-    const accessToken = data.AuthenticationResult?.AccessToken;
+    if (data.ChallengeName === "NEW_PASSWORD_REQUIRED") {
+      const newPassword = `${password}5`;
+      const session = data?.Session;
+
+      const respondParams = {
+        ChallengeName: "NEW_PASSWORD_REQUIRED",
+        ClientId: clientId,
+        ChallengeResponses: {
+          USERNAME: email,
+          NEW_PASSWORD: newPassword,
+        },
+        Session: session,
+      };
+      const newData = await cognito.respondToAuthChallenge(respondParams).promise();
+      accessToken = newData?.AuthenticationResult?.AccessToken;
+    } else {
+      accessToken = data?.AuthenticationResult?.AccessToken;
+    }
 
     const getUserParams = {
       AccessToken: accessToken || "",
     };
 
     const userData = await cognito.getUser(getUserParams).promise();
-
+    
     const fullName =
       userData.UserAttributes?.find((attr) => attr.Name === "name")?.Value ||
       "";
@@ -52,3 +71,5 @@ const userSigninController = async (req: Request, res: Response) => {
 };
 
 export default userSigninController;
+
+
