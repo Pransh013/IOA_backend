@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { cognito } from "../db";
+import { cognito, dynamodb } from "../db";
 
 const clientId = process.env.COGNITO_CLIENT_ID || "my-app-client-id";
+const dynamoDBTable = process.env.DYNAMODB_TABLE_NAME || "my-db-table";
 
 const userSigninController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -36,7 +37,9 @@ const userSigninController = async (req: Request, res: Response) => {
         },
         Session: session,
       };
-      const newData = await cognito.respondToAuthChallenge(respondParams).promise();
+      const newData = await cognito
+        .respondToAuthChallenge(respondParams)
+        .promise();
       accessToken = newData?.AuthenticationResult?.AccessToken;
     } else {
       accessToken = data?.AuthenticationResult?.AccessToken;
@@ -51,16 +54,30 @@ const userSigninController = async (req: Request, res: Response) => {
     const userId = userData?.UserAttributes?.find(
       (attr) => attr.Name === "sub"
     )?.Value;
-    
+
     const fullName =
       userData.UserAttributes?.find((attr) => attr.Name === "name")?.Value ||
       "";
+
+      const dynamoDBParams = {
+        TableName: dynamoDBTable,
+        Key: { userId },
+      };
+
+      const dbData = await dynamodb.get(dynamoDBParams).promise();
+      if (!dbData.Item) {
+        return res
+          .status(404)
+          .json({ error: "Data not found for this user" });
+      }
+      const { bloodGroup } = dbData.Item;
 
     return res.status(200).json({
       message: "Login successful",
       token: data.AuthenticationResult?.IdToken,
       fullName,
-      userId
+      userId,
+      bloodGroup,
     });
   } catch (error: any) {
     console.error("Error logging in user:", error);
@@ -76,5 +93,3 @@ const userSigninController = async (req: Request, res: Response) => {
 };
 
 export default userSigninController;
-
-
