@@ -5,7 +5,7 @@ const userPoolId = process.env.COGNITO_USER_POOL_ID || "my-user-pool-id";
 const dynamoDBTable = process.env.DYNAMODB_TABLE_NAME || "my-db-table";
 
 const userSignupController = async (req: Request, res: Response) => {
-  const { email, password, fullName } = req.body;
+  const { email, password, fullName, bloodGroup = "A+" } = req.body;
 
   if (!email || !password || !fullName) {
     return res
@@ -42,7 +42,9 @@ const userSignupController = async (req: Request, res: Response) => {
         userId,
         email,
         fullName,
+        bloodGroup,
         checklist: initialChecklist,
+        calenderEvents: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
@@ -50,9 +52,7 @@ const userSignupController = async (req: Request, res: Response) => {
     };
     await dynamodb.put(params).promise();
 
-    return res
-      .status(201)
-      .json({ message: "User signed up successfully." });
+    return res.status(201).json({ message: "User signed up successfully." });
   } catch (error: any) {
     console.error("Error signing up user: ", error);
     if (error.code === "UsernameExistsException") {
