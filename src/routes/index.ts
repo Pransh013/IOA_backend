@@ -5,6 +5,6 @@ import { userDetailsRouter } from "./userDetailsRoutes";
 const router = express.Router();
 
 router.use("/user", userRouter);
-router.use("/account", userDetailsRouter);
+router.use("/users", userDetailsRouter);
 
 export default router;

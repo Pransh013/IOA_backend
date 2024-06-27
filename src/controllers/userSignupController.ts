@@ -34,12 +34,15 @@ const userSignupController = async (req: Request, res: Response) => {
       (attr) => attr.Name === "sub"
     )?.Value;
 
+    const initialChecklist = Array(9).fill(0);
+
     const params = {
       TableName: dynamoDBTable,
       Item: {
         userId,
         email,
         fullName,
+        checklist: initialChecklist,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },

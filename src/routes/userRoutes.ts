@@ -1,10 +1,13 @@
-import express from "express";
+import { Router } from "express";
 import userSignupController from "../controllers/userSignupController";
 import userSigninController from "../controllers/userSigninController";
 import verifyEmailController from "../controllers/verifyEmailController";
-import { confirmForgotPasswordController, forgotPasswordController } from "../controllers/forgotPasswordController";
+import {
+  confirmForgotPasswordController,
+  forgotPasswordController,
+} from "../controllers/forgotPasswordController";
 
-const router = express.Router();
+const router = Router();
 
 router.post("/signup", userSignupController);
 router.post("/signin", userSigninController);

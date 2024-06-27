@@ -11,7 +11,6 @@ const envFile =
     : ".env.development";
 dotenv.config({ path: envFile });
 
-
 app.use(express.json());
 app.use(cors());
 

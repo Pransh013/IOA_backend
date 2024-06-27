@@ -24,7 +24,7 @@ const userSigninController = async (req: Request, res: Response) => {
   try {
     const data = await cognito.initiateAuth(params).promise();
     if (data.ChallengeName === "NEW_PASSWORD_REQUIRED") {
-      const newPassword = `${password}5`;
+      const newPassword = `${password}`;
       const session = data?.Session;
 
       const respondParams = {
@@ -47,6 +47,10 @@ const userSigninController = async (req: Request, res: Response) => {
     };
 
     const userData = await cognito.getUser(getUserParams).promise();
+
+    const userId = userData?.UserAttributes?.find(
+      (attr) => attr.Name === "sub"
+    )?.Value;
     
     const fullName =
       userData.UserAttributes?.find((attr) => attr.Name === "name")?.Value ||
@@ -55,7 +59,8 @@ const userSigninController = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "Login successful",
       token: data.AuthenticationResult?.IdToken,
-      fullName: fullName,
+      fullName,
+      userId
     });
   } catch (error: any) {
     console.error("Error logging in user:", error);
