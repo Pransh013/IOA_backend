@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { cognito, dynamodb } from "../db";
+import { cognito } from "../db";
 
 const clientId = process.env.COGNITO_CLIENT_ID || "my-app-client-id";
 
